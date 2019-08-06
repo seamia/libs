@@ -201,7 +201,7 @@ func fillinSubstitutes() {
 func normalizeString(src string) string {
 	if len(src) > 0 && len(substitutes) > 0 {
 		for key, value := range substitutes {
-			src = strings.ReplaceAll(src, value, "${"+key+"}")
+			src = strings.Replace(src, value, "${"+key+"}", -1)
 		}
 	}
 	return src
