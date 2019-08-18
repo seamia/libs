@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"syscall"
+
+	"github.com/seamia/libs/printer"
 )
 
 const (
@@ -29,7 +31,6 @@ type (
 )
 
 var (
-	// customMapping = make(m2s)
 	defaultResolver = new()
 )
 
@@ -85,6 +86,7 @@ func (self *resolver) mappingFunc(from string) string {
 		return value
 	}
 
+	printer.Print("failed to resolve [%s]", from)
 	return mappingFailure(from)
 }
 

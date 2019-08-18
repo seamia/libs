@@ -38,3 +38,21 @@ func (prn Printer) WithHeader(format string, args ...interface{}) Printer {
 	}
 	return printer.print
 }
+
+func empty(format string, args ...interface{}) {}
+
+var (
+	currentPrinter Printer = empty
+)
+
+func Print(format string, args ...interface{}) {
+	currentPrinter(format, args...)
+}
+
+func Set(prn Printer) {
+	if prn == nil {
+		currentPrinter = empty
+	} else {
+		currentPrinter = prn
+	}
+}
