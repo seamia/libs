@@ -19,14 +19,20 @@ const (
 type (
 	m2s = map[string]string
 
+	Filter func(string) (bool, string)
+
 	Resolver interface {
 		Text(from string) string
 		Bytes(from []byte) []byte
 		Add(key, value string)
+		SetFilter(flt Filter, pre bool)
 	}
+
 	resolver struct {
 		Resolver
-		mapping m2s
+		mapping    m2s
+		preFilter  Filter
+		postFilter Filter
 	}
 )
 
@@ -75,8 +81,26 @@ func (self *resolver) Add(key, value string) {
 	}
 }
 
+func (self *resolver) SetFilter(flt Filter, pre bool) {
+	if self == nil {
+		self = defaultResolver
+	}
+	if flt == nil {
+		flt = emptyFilter
+	}
+	if pre {
+		self.preFilter = flt
+	} else {
+		self.postFilter = flt
+	}
+}
+
 func (self *resolver) mappingFunc(from string) string {
-	// first look into "custom"
+	// first: run pre-filter
+	if success, resolution := self.preFilter(from); success {
+		return resolution
+	}
+	// second look into "custom"
 	if value, exists := self.mapping[from]; exists {
 		return value
 	}
@@ -84,6 +108,11 @@ func (self *resolver) mappingFunc(from string) string {
 	// then, check the environment
 	if value, exists := syscall.Getenv(from); exists {
 		return value
+	}
+
+	// last: run post-filter
+	if success, resolution := self.postFilter(from); success {
+		return resolution
 	}
 
 	printer.Print("failed to resolve [%s]", from)
@@ -95,9 +124,17 @@ func mappingFailure(from string) string {
 }
 
 func New() Resolver {
-	return &resolver{mapping: make(m2s)}
+	return &resolver{
+		mapping:    make(m2s),
+		preFilter:  emptyFilter,
+		postFilter: emptyFilter,
+	}
 }
 
 func new() *resolver {
 	return New().(*resolver)
+}
+
+func emptyFilter(src string) (bool, string) {
+	return false, src
 }
