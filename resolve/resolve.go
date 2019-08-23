@@ -5,7 +5,6 @@
 package resolve
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 
@@ -120,7 +119,7 @@ func (self *resolver) mappingFunc(from string) string {
 }
 
 func mappingFailure(from string) string {
-	return fmt.Sprintf(mappingFailureFormat, from)
+	return "" // return fmt.Sprintf(mappingFailureFormat, from)
 }
 
 func New() Resolver {
