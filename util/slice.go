@@ -21,12 +21,30 @@ func (src Slice) Distinct() Slice {
 	return distinct
 }
 
-func (src Slice) Distinct() Slice {
+func (src Slice) Sort() Slice {
 	sort.Strings(src)
 	return src
 }
 
-func (src Slice) Append(one string) Slice {
+func (ptr *Slice) Append(one string) Slice {
+	var src Slice
+	if ptr == nil {
+		// ?
+	} else {
+		src = *ptr
+	}
 	src = append(src, one)
+
+	if ptr != nil {
+		*ptr = src
+	}
 	return src
+}
+
+func (src Slice) Empty() bool {
+	return src == nil || len(src) == 0
+}
+
+func (src Slice) Len() int {
+	return len(src)
 }

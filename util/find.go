@@ -4,12 +4,20 @@
 
 package util
 
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
 const (
 	root   = "../../dist"
 	suffix = ".html"
 )
 
-func main() {
+func main1() {
 
 	absolute, err := filepath.Abs(root)
 	if err != nil {
