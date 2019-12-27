@@ -1,10 +1,10 @@
 package io
 
 import (
-	"errors"
 	"encoding/json"
-	"io/ioutil"
+	"errors"
 	"github.com/seamia/libs/zip"
+	"io/ioutil"
 )
 
 func LoadJson(filename string) (interface{}, error) {
