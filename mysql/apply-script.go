@@ -8,11 +8,17 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io/ioutil"
 	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	statementSeparator = ";"
+	localFilePrefix    = "file://"
 )
 
 func ApplyScript(db *sql.DB, script string) error {
@@ -23,7 +29,18 @@ func ApplyScript(db *sql.DB, script string) error {
 		return errors.New("script is empty")
 	}
 
-	statements := strings.Split(script, ";")
+	if strings.HasPrefix(script, localFilePrefix) {
+		fileName := script[len(localFilePrefix):]
+		data, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			log.Printf("Failed to read file (%s) due to (%v)\n", fileName, err)
+			return err
+		}
+		log.Printf("Using script (%s)\n", fileName)
+		script = string(data)
+	}
+
+	statements := strings.Split(script, statementSeparator)
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancelfunc()
