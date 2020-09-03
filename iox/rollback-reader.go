@@ -7,6 +7,8 @@ package iox
 import (
 	"errors"
 	"io"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -40,6 +42,10 @@ const (
 	maxRollBackSize = 1024
 )
 
+var (
+	report = log.Infof
+)
+
 func minimumOf(one, two int) int {
 	if one < two {
 		return one
@@ -55,26 +61,26 @@ func (r *rollbackReader) Read(receiver []byte) (n int, err error) {
 	}
 
 	if r.rollback == 0 {
-		read, err := r.reader.Read(receiver)
+		read, err := r.read(receiver)
 		if err == nil && read > 0 {
 			preserve := minimumOf(read, maxRollBackSize)
 			r.lastRead = make([]byte, preserve)
 			if saved := copy(r.lastRead, receiver[read-preserve:]); saved != preserve {
+				report("failed to copy (%d; %d)", saved, preserve)
 				return 0, errImpossible
 			}
 		}
 		return read, err
 	}
 
-	// size := len(receiver)
-	if r.rollback > len(receiver) {
+	if r.rollback > len(r.lastRead) {
 		// aka: cannot roll back more than we have in store
 		// this should not happen due to check inside Rollback func below
+		report("rollback is too big (%d; %d)", r.rollback, len(r.lastRead))
 		return 0, errImpossible
-	} else if len(receiver) <= len(r.lastRead) {
+	} else if len(receiver) <= r.rollback {
 		// all the data we need is inside `lastRead` buffer
-		read := copy(receiver, r.lastRead[len(r.lastRead)-r.rollback:]) //
-		r.lastRead = r.lastRead[read:]
+		read := copy(receiver, r.lastRead[len(r.lastRead)-r.rollback:])
 		r.rollback -= read
 
 		return read, success
@@ -83,13 +89,14 @@ func (r *rollbackReader) Read(receiver []byte) (n int, err error) {
 		// #1. copy all from `lastRead` buffer
 		copied := copy(receiver, r.lastRead[len(r.lastRead)-r.rollback:])
 		if copied != r.rollback {
+			report("failed to copy #2 (%d; %d)", copied, r.rollback)
 			return 0, errImpossible
 		}
 		r.lastRead = r.lastRead[:0]
 		r.rollback -= copied
 
 		// #2. append the remaining data from the 'real' stream
-		read, err := r.reader.Read(receiver[copied:])
+		read, err := r.read(receiver[copied:])
 		if err != nil {
 			// eof?
 			return read, err
@@ -99,6 +106,7 @@ func (r *rollbackReader) Read(receiver []byte) (n int, err error) {
 		preserve := minimumOf(read, maxRollBackSize)
 		r.lastRead = make([]byte, preserve)
 		if saved := copy(r.lastRead, receiver[copied+read-preserve:]); saved != read {
+			report("failed to copy #3 (%d; %d)", saved, read)
 			return 0, errImpossible
 		}
 		return copied + read, success
@@ -120,4 +128,12 @@ func (r *rollbackReader) Rollback(back int) error {
 	r.rollback += back
 
 	return success
+}
+
+func (r *rollbackReader) read(receiver []byte) (n int, err error) {
+	if r == nil || r.reader == nil || receiver == nil {
+		return 0, errNil
+	}
+
+	return io.ReadFull(r.reader, receiver)
 }
