@@ -1,10 +1,15 @@
-package io
+// Copyright 2020 Seamia Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package iox
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/seamia/libs/zip"
 	"io/ioutil"
+
+	"github.com/seamia/libs/zip"
 )
 
 func LoadJson(filename string) (interface{}, error) {
