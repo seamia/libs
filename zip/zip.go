@@ -33,7 +33,7 @@ func Decompress(what []byte) ([]byte, error) {
 	if what[0] != compressedStreamPrefix {
 		// it doesn't seem to be compressed - return the source
 		if what[0] != byte('{') && what[0] != byte('[') {
-			fmt.Println("hmmmm.... unextected prefix of persisted stream ....")
+			// fmt.Println("hmmmm.... unexpected prefix of persisted stream ....")
 		}
 		return what, nil
 	}
