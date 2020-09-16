@@ -56,7 +56,7 @@ func ApplyScript(db *sql.DB, script string) error {
 		if len(line) > 0 {
 			_, err := tx.ExecContext(ctx, line)
 			if err != nil {
-				log.Printf("Error (%v) on line %i (%s)\n", err, i, statement)
+				log.WithError(err).Errorf("Error on line %d: (%s)\n", i, statement)
 				if err := tx.Rollback(); err != nil {
 					log.Printf("Error while rolling back active transaction (%v)\n", err)
 				}
