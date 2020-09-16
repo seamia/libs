@@ -33,10 +33,10 @@ func ApplyScript(db *sql.DB, script string) error {
 		fileName := script[len(localFilePrefix):]
 		data, err := ioutil.ReadFile(fileName)
 		if err != nil {
-			log.Printf("Failed to read file (%s) due to (%v)\n", fileName, err)
+			log.WithError(err).Errorf("Failed to read file (%s)", fileName)
 			return err
 		}
-		log.Printf("Using script (%s)\n", fileName)
+		log.Infof("Using script (%s)\n", fileName)
 		script = string(data)
 	}
 
@@ -47,7 +47,7 @@ func ApplyScript(db *sql.DB, script string) error {
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		log.Printf("Failed to start transaction (%v)\n", err)
+		log.WithError(err).Errorf("Failed to start transaction")
 		return err
 	}
 
@@ -58,14 +58,14 @@ func ApplyScript(db *sql.DB, script string) error {
 			if err != nil {
 				log.WithError(err).Errorf("Error on line %d: (%s)\n", i, statement)
 				if err := tx.Rollback(); err != nil {
-					log.Printf("Error while rolling back active transaction (%v)\n", err)
+					log.WithError(err).Errorf("Error while rolling back active transaction")
 				}
 				return err
 			}
 		}
 	}
 	if err := tx.Commit(); err != nil {
-		log.Printf("Error while rolling back active transaction (%v)\n", err)
+		log.WithError(err).Errorf("Error while rolling back active transaction")
 		return err
 	}
 	return nil
