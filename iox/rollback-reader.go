@@ -105,8 +105,8 @@ func (r *rollbackReader) Read(receiver []byte) (n int, err error) {
 		// #3. save read data?
 		preserve := minimumOf(read, maxRollBackSize)
 		r.lastRead = make([]byte, preserve)
-		if saved := copy(r.lastRead, receiver[copied+read-preserve:]); saved != read {
-			report("failed to copy #3 (%d; %d)", saved, read)
+		if saved := copy(r.lastRead, receiver[copied+read-preserve:]); saved != preserve {
+			report("failed to copy #3 (%d; %d)", saved, preserve)
 			return 0, errImpossible
 		}
 		return copied + read, success
