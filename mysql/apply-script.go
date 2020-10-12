@@ -12,16 +12,24 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	statementSeparator = ";"
-	localFilePrefix    = "file://"
+	statementSeparator       = ";"
+	localFilePrefix          = "file://"
+	longestShownScriptLength = 80
 )
 
+// (optional) callback func to provide caller-driven error response
+type ErrorFilter func(err error, statement string) error
+
 func ApplyScript(db *sql.DB, script string) error {
+	return ApplyScriptV2(db, script, nil)
+}
+
+func ApplyScriptV2(db *sql.DB, script string, filter ErrorFilter) error {
 	if db == nil {
 		return errors.New("DB is nil")
 	}
@@ -33,10 +41,10 @@ func ApplyScript(db *sql.DB, script string) error {
 		fileName := script[len(localFilePrefix):]
 		data, err := ioutil.ReadFile(fileName)
 		if err != nil {
-			log.WithError(err).Errorf("Failed to read file (%s)", fileName)
+			log.Printf("Failed to read file (%s) due to (%v)\n", fileName, err)
 			return err
 		}
-		log.Infof("Using script (%s)\n", fileName)
+		log.Printf("Using script (%s)\n", fileName)
 		script = string(data)
 	}
 
@@ -47,7 +55,7 @@ func ApplyScript(db *sql.DB, script string) error {
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		log.WithError(err).Errorf("Failed to start transaction")
+		log.Printf("Failed to start transaction (%v)\n", err)
 		return err
 	}
 
@@ -56,17 +64,39 @@ func ApplyScript(db *sql.DB, script string) error {
 		if len(line) > 0 {
 			_, err := tx.ExecContext(ctx, line)
 			if err != nil {
-				log.WithError(err).Errorf("Error on line %d: (%s)\n", i, statement)
+				if filter != nil {
+					newErr := filter(err, line)
+					if newErr == nil {
+						log.WithError(err).Infof("ignoring original error (as instructed by the caller.filter")
+						continue
+					}
+					err = newErr
+				}
+
+				if e, ok := err.(*mysql.MySQLError); ok {
+					log.WithError(e).Errorf("Error on line %d (%v, %v): (%s)\n", i, e.Number, e.Message, prettyStatement(statement))
+				} else {
+					log.WithError(err).Errorf("Error on line %d: (%s)\n", i, prettyStatement(statement))
+				}
+
 				if err := tx.Rollback(); err != nil {
-					log.WithError(err).Errorf("Error while rolling back active transaction")
+					log.Printf("Error while rolling back active transaction (%v)\n", err)
 				}
 				return err
 			}
 		}
 	}
 	if err := tx.Commit(); err != nil {
-		log.WithError(err).Errorf("Error while rolling back active transaction")
+		log.Printf("Error while rolling back active transaction (%v)\n", err)
 		return err
 	}
 	return nil
+}
+
+func prettyStatement(txt string) string {
+	txt = strings.Trim(txt, " \t\r\n")
+	if len(txt) > longestShownScriptLength {
+		txt = txt[:longestShownScriptLength] + "..."
+	}
+	return txt
 }
