@@ -52,3 +52,22 @@ func LoadJsonAsDictionary(filename string) (map[string]string, error) {
 	}
 	return nil, errors.New("wrong underlaying type")
 }
+
+func SaveJson(filename string, payload interface{}, compress bool) error {
+
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	// potential compression
+	if compress {
+		data = zip.Compress(data)
+	}
+
+	if err := ioutil.WriteFile(filename, data, 0666); err != nil {
+		return err
+	}
+
+	return nil
+}
