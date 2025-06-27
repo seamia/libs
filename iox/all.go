@@ -5,14 +5,11 @@
 package iox
 
 import (
-	"os"
 	"io"
-	"strings"
-	"fmt"
-	"sync"
+	. "github.com/seamia/libs"
 )
 
-func ReadAll(from io.Reader, buffer []byte) error {
+func ReadAll(from io.Reader, buffer []byte, trace Tracer) error {
 	trace("reading %v bytes...", len(buffer))
 	for len(buffer) > 0 {
 		bytesRead, err := from.Read(buffer)
@@ -28,7 +25,7 @@ func ReadAll(from io.Reader, buffer []byte) error {
 	return nil
 }
 
-func WriteAll(to io.Writer, buffer []byte) error {
+func WriteAll(to io.Writer, buffer []byte, trace Tracer) error {
 	trace("writing %v bytes...", len(buffer))
 	for len(buffer) > 0 {
 		bytesWritten, err := to.Write(buffer)
