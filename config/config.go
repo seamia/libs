@@ -223,3 +223,11 @@ func reloadConfig(name string) bool {
 
 	return true
 }
+
+func Debug() bool {
+	return configDebug
+}
+
+func Trace() bool {
+	return configTrace
+}
