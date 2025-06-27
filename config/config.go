@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/seamia/libs"
 )
 
 const (
@@ -35,7 +36,7 @@ func loadConfigFile(name string) (Config, error) {
 	raw, err := os.ReadFile(name)
 	if err != nil {
 		workdir, _ := os.Getwd()
-		alarm("failed to find/open config file (%s): %v (work dir: %v)", name, err, workdir)
+		libs.Alarm("failed to find/open config file (%s): %v (work dir: %v)", name, err, workdir)
 
 		if configFileName == defaultConfigFileName {
 			appDir, _ := path.Split(os.Args[0])
@@ -51,7 +52,7 @@ func loadConfigFile(name string) (Config, error) {
 	
 	var data Config
 	if err := json.Unmarshal(raw, &data); err != nil {
-		alarm("failed to process config file (%s): %v", name, err)
+		libs.Alarm("failed to process config file (%s): %v", name, err)
 		return nil, err
 	}
 
@@ -89,7 +90,7 @@ func loadConfigFile(name string) (Config, error) {
 		if !strings.HasPrefix(k, "$") {
 			if expanded := transform(v); expanded != v {
 				if configDebug {
-					trace("config: changing (%s) to (%s)", v, expanded)
+					libs.Trace("config: changing (%s) to (%s)", v, expanded)
 				}
 				data[k] = expanded
 			}
@@ -103,13 +104,13 @@ func Get(key string) string {
 	if configData == nil {
 		data, err := loadConfigFile(configFileName)
 		if err != nil {
-			alarm("failed to find/open/process config file (%s): %v", configFileName, err)
+			libs.Alarm("failed to find/open/process config file (%s): %v", configFileName, err)
 			os.Exit(13)
 		}
 
 		configData = data
 		if value, found := data[keyLiveReload]; found && value == affirmative {
-			trace("config: live.reload is requested")
+			libs.Trace("config: live.reload is requested")
 			go configLiveReload(configFileName)
 		}
 	}
@@ -119,7 +120,7 @@ func Get(key string) string {
 	}
 
 	if configDebug {
-		trace("failed to find key (%s) in config", key)
+		libs.Trace("failed to find key (%s) in config", key)
 	}
 	return ""
 }
@@ -131,7 +132,7 @@ func Flag(key string) bool {
 func GetInt(key string, fallback int) int {
 	if txt := Get(key); len(txt) > 0 {
 		if value, err := strconv.Atoi(txt); err != nil {
-			warning("failed to convert value (%v) for key (%s) into int", txt, key)
+			libs.Warning("failed to convert value (%v) for key (%s) into int", txt, key)
 		} else {
 			return value
 		}
@@ -144,13 +145,13 @@ func configLiveReload(name string) {
 	const scope = "live.config: "
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		failure(scope+"failed to create a watcher, err: %v", err)
+		libs.Failure(scope+"failed to create a watcher, err: %v", err)
 		return
 	}
 	defer watcher.Close()
 
 	if err = watcher.Add(name); err != nil {
-		failure(scope+"failed to add a file (%s) to watcher, err: %v", name, err)
+		libs.Failure(scope+"failed to add a file (%s) to watcher, err: %v", name, err)
 		return
 	}
 
@@ -158,19 +159,19 @@ func configLiveReload(name string) {
 		select {
 		case event, operational := <-watcher.Events:
 			if !operational {
-				warning(scope + "events channel closed")
+				libs.Warning(scope + "events channel closed")
 				return
 			}
 
-			// trace(scope+"got event: %v", event)
+			// libs.Trace(scope+"got event: %v", event)
 			if event.Op&fsnotify.Write == fsnotify.Write {
-				trace(scope+"modified file: %s", event.Name)
+				libs.Trace(scope+"modified file: %s", event.Name)
 				if !reloadConfig(name) {
 					return
 				}
 			} else if event.Op&fsnotify.Remove == fsnotify.Remove {
 				if err = watcher.Add(name); err != nil {
-					failure(scope+"failed to add a file (%s) to watcher, err: %v", name, err)
+					libs.Failure(scope+"failed to add a file (%s) to watcher, err: %v", name, err)
 					return
 				}
 				if !reloadConfig(name) {
@@ -179,10 +180,10 @@ func configLiveReload(name string) {
 			}
 		case err, operational := <-watcher.Errors:
 			if !operational {
-				warning(scope + "errors channel closed")
+				libs.Warning(scope + "errors channel closed")
 				return
 			}
-			warning(scope+"watch error: %v", err)
+			libs.Warning(scope+"watch error: %v", err)
 		}
 	}
 
@@ -193,7 +194,7 @@ func reloadConfig(name string) bool {
 	time.Sleep(1 * time.Second)
 	if data, err := loadConfigFile(name); err == nil {
 		if value, found := data[keyLiveReload]; found && value != affirmative {
-			trace(scope + " no more live reloads")
+			libs.Trace(scope + " no more live reloads")
 			return false
 		}
 
@@ -201,15 +202,15 @@ func reloadConfig(name string) bool {
 			for key, oldValue := range configData {
 				if newValue, found := data[key]; found {
 					if oldValue != newValue {
-						trace(scope+"value for key [%s] changed from [%s] to [%s]", key, oldValue, newValue)
+						libs.Trace(scope+"value for key [%s] changed from [%s] to [%s]", key, oldValue, newValue)
 					}
 				} else {
-					trace(scope+"removed key [%s] from config", key)
+					libs.Trace(scope+"removed key [%s] from config", key)
 				}
 			}
 			for key, value := range data {
 				if _, found := configData[key]; !found {
-					trace(scope+"added new key [%s] with value [%s]", key, value)
+					libs.Trace(scope+"added new key [%s] with value [%s]", key, value)
 				}
 			}
 		}
@@ -217,7 +218,7 @@ func reloadConfig(name string) bool {
 		configData = data
 
 	} else {
-		warning(scope+"failed to reload config file (%s), err: %v", name, err)
+		libs.Warning(scope+"failed to reload config file (%s), err: %v", name, err)
 	}
 
 	return true
