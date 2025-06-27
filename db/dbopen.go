@@ -5,6 +5,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -89,9 +90,28 @@ func (db *Database) Close() error {
 	return nil
 }
 
+/*
 func (db Database) Ping() error {
 	if db.db != nil {
 		return db.db.Ping()
+	}
+	return errors.New("nil")
+}
+*/
+
+func (db Database) Ping() error {
+	if db.db != nil {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+		defer cancel()
+
+		err := db.db.PingContext(ctx)
+		if err == context.DeadlineExceeded {
+
+		} else if err == context.Canceled {
+
+		}
+		return err
 	}
 	return errors.New("nil")
 }

@@ -98,7 +98,7 @@ func findInBetween(src, left, right string, unique bool, sanitize Transform) []s
 	}
 
 	if unique && len(results) > 1 {
-	    return results.Distinct()
+		return results.Distinct()
 	}
 
 	return results
@@ -124,9 +124,8 @@ func removeKeywords(src string) (string, bool) {
 	return "", false
 }
 
-
 func ExludeThese(exclude []string) Transform {
-	exludes := map[string] struct{}{}
+	exludes := map[string]struct{}{}
 	for _, one := range exclude {
 		exludes[one] = struct{}{}
 	}

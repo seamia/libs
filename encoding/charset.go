@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	left	= "=?"	// "=?windows-1251?Q?"
-	middle	= "?Q?"
-	middle2	= "?q?"
-	right 	= "?="
+	left    = "=?" // "=?windows-1251?Q?"
+	middle  = "?Q?"
+	middle2 = "?q?"
+	right   = "?="
 )
 
 func Decode(src string) string {
@@ -36,10 +36,10 @@ func Decode(src string) string {
 			result += src
 			break
 		}
-		end = center+len(middle) + strings.Index(src[center+len(middle):], right)
+		end = center + len(middle) + strings.Index(src[center+len(middle):], right)
 
 		encoding := src[:center]
-		payload := src[center+len(middle):end]
+		payload := src[center+len(middle) : end]
 
 		result += decodeIt(payload, encoding)
 
@@ -51,7 +51,7 @@ func Decode(src string) string {
 }
 
 var (
-	mapping = map[string]string {
+	mapping = map[string]string{
 		"=3F": "?",
 
 		"=91": "‘",
@@ -59,14 +59,14 @@ var (
 		"=96": "-",
 		"=97": "|",
 
-		"=A0": " ",	// non-brekable space?
+		"=A0": " ", // non-brekable space?
 	}
 )
 
 func decodeIt(what string, encd string) string {
 	result := strings.Replace(what, "_", " ", -1)
 
-	for from,to := range mapping {
+	for from, to := range mapping {
 		result = strings.Replace(result, from, to, -1)
 	}
 
