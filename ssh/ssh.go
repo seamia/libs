@@ -128,8 +128,11 @@ func (c *Connection) connect() error {
 }
 
 func (c *Connection) CreateFile(dstPath string) (*sftp.File, error) {
-	if root := c.value("root"); len(root) != 0 {
-		dstPath = filepath.Join(root, dstPath)
+	if !strings.HasPrefix(dstPath, "/") {
+		// we have an absolute path - no need to prefix any "root"
+		if root := c.value("root"); len(root) != 0 {
+			dstPath = filepath.Join(root, dstPath)
+		}
 	}
 	dstPath = strings.ReplaceAll(dstPath, "\\", "/")
 
