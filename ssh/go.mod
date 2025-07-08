@@ -1,11 +1,9 @@
-module github.com/seamia/libs
+module github.com/seamia/libs/ssh
 
 go 1.24.3
 
 require (
-	github.com/fsnotify/fsnotify v1.9.0
 	github.com/pkg/sftp v1.13.9
-	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/crypto v0.39.0
 )
 
