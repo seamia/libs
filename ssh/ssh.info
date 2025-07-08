@@ -1,0 +1,19 @@
+{
+	"amsterdam": {
+		"user":		"andrew.heart",
+		"key":		"/private/keys/ssh/host/amsterdam.key",
+		"address":	"amsterdam.network:22",
+		"root":		"/data/tmp/",
+		"auto.close":	"no",
+		"debug":	"yes"
+	},
+
+	"london": {
+		"user":		"big.ben",
+		"password":	"68ce3cca896c96c5f6f98ff0e34f273b3f4637b0",
+		"address":	"1.2.3.4:22",
+		"root":		"/data/tmp/",
+		"auto.close":	"yes",
+		"debug":	"yes"
+	}
+}
