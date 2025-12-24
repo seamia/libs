@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -69,11 +68,6 @@ func CreateWriter(fileName string) io.WriteCloser {
 		name:  fileName,
 		state: streamNotOpened,
 	}
-}
-
-func onError(format string, args ...any) {
-	format = strings.TrimSuffix(format, "\n") + "\n"
-	fmt.Fprintf(os.Stderr, format, args...)
 }
 
 type dummyWriter struct {
