@@ -5,10 +5,10 @@
 package iox
 
 import (
-	"os"
-	"io"
-	"strings"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 	"sync"
 )
 
@@ -20,12 +20,11 @@ const (
 	streamClosed
 )
 
-
 type createOnWriteWriter struct {
 	name    string
 	handler *os.File
 	guard   sync.Mutex
-	state 	streamState
+	state   streamState
 }
 
 func (w *createOnWriteWriter) Close() error {
@@ -65,10 +64,9 @@ func (w *createOnWriteWriter) Write(p []byte) (n int, err error) {
 	panic("unreachable")
 }
 
-
 func CreateWriter(fileName string) io.WriteCloser {
 	return &createOnWriteWriter{
-		name: fileName,
+		name:  fileName,
 		state: streamNotOpened,
 	}
 }
