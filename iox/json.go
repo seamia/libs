@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 )
 
 func JsonSaveMarshal(filename string, mapping any) error {
@@ -41,9 +40,4 @@ func JsonLoadUnmarshal(filename string, mapping any) error {
 		return err
 	}
 	return nil
-}
-
-func onError(format string, args ...any) {
-	format = strings.TrimSuffix(format, "\n") + "\n"
-	fmt.Fprintf(os.Stderr, format, args...)
 }
