@@ -7,14 +7,14 @@ package iox
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"os"
 
 	"github.com/seamia/libs/zip"
 )
 
 func LoadJson(filename string) (interface{}, error) {
 
-	raw, err := ioutil.ReadFile(filename)
+	raw, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func SaveJson(filename string, payload interface{}, compress bool) error {
 		data = zip.Compress(data)
 	}
 
-	if err := ioutil.WriteFile(filename, data, 0666); err != nil {
+	if err := os.WriteFile(filename, data, 0666); err != nil {
 		return err
 	}
 
