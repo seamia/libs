@@ -10,9 +10,14 @@ import (
 	"path/filepath"
 )
 
+// Find given "filename" in one of provided (or constructed) locations,
+// return first found
 func Find(filename string, candidates []string) (string, error) {
 	if len(candidates) == 0 {
 
+		if configDir := os.Getenv("CONFIG_DIR"); len(configDir) > 0 {
+			candidates = append(candidates, configDir)
+		}
 		if current, err := os.Getwd(); err == nil {
 			candidates = append(candidates, current)
 		}
