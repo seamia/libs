@@ -12,14 +12,16 @@ import (
 
 func Find(filename string, candidates []string) (string, error) {
 	if len(candidates) == 0 {
-		candidates = append(candidates, "./")
+
+		if current, err := os.Getwd(); err == nil {
+			candidates = append(candidates, current)
+		}
 		if executable, err := os.Executable(); err == nil {
-			candidates = append(candidates, executable)
+			candidates = append(candidates, filepath.Dir(executable))
 		}
 		if configDir, err := os.UserConfigDir(); err == nil {
 			candidates = append(candidates, configDir)
 		}
-
 		if homeDir, err := os.UserHomeDir(); err == nil {
 			candidates = append(candidates, homeDir)
 		}
