@@ -18,7 +18,7 @@ func Find(filename string, candidates []string) (string, error) {
 	moduleName := ""
 	if len(candidates) == 0 {
 		if info, ok := debug.ReadBuildInfo(); ok {
-			parts := strings.Split(info.Main.Path, ".")
+			parts := strings.Split(info.Main.Path, "/")
 			moduleName = strings.ToLower(parts[len(parts)-1] + "." + filename)
 		}
 
