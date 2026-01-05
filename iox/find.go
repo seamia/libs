@@ -8,12 +8,19 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
 )
 
 // Find given "filename" in one of provided (or constructed) locations,
 // return first found
 func Find(filename string, candidates []string) (string, error) {
+	moduleName := ""
 	if len(candidates) == 0 {
+		if info, ok := debug.ReadBuildInfo(); ok {
+			parts := strings.Split(info.Main.Path, ".")
+			moduleName = strings.ToLower(parts[len(parts)-1] + "." + filename)
+		}
 
 		if configDir := os.Getenv("CONFIG_DIR"); len(configDir) > 0 {
 			candidates = append(candidates, configDir)
@@ -32,6 +39,14 @@ func Find(filename string, candidates []string) (string, error) {
 		}
 	}
 
+	if len(moduleName) > 0 {
+		for _, candidate := range candidates {
+			fullPath := filepath.Join(candidate, moduleName)
+			if fileExists(fullPath) {
+				return fullPath, nil
+			}
+		}
+	}
 	for _, candidate := range candidates {
 		fullPath := filepath.Join(candidate, filename)
 		if fileExists(fullPath) {
