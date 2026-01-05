@@ -41,3 +41,12 @@ func JsonLoadUnmarshal(filename string, mapping any) error {
 	}
 	return nil
 }
+
+func JsonFindLoadUnmarshal(filename string, mapping any) error {
+	if fullName, err := Find(filename, nil); err != nil {
+		onError("failed to find file %s: %v", filename, err)
+		return err
+	} else {
+		return JsonLoadUnmarshal(fullName, mapping)
+	}
+}

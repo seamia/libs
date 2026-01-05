@@ -6,12 +6,13 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/fsnotify/fsnotify"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 	"github.com/seamia/libs"
 )
 
@@ -49,7 +50,7 @@ func loadConfigFile(name string) (Config, error) {
 
 		return nil, err
 	}
-	
+
 	var data Config
 	if err := json.Unmarshal(raw, &data); err != nil {
 		libs.Alarm("failed to process config file (%s): %v", name, err)

@@ -8,12 +8,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"io"
 	"time"
-	"errors"
+
 	"github.com/seamia/libs"
-	"github.com/seamia/libs/iox"
 	"github.com/seamia/libs/config"
+	"github.com/seamia/libs/iox"
 )
 
 const (

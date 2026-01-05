@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	Msi  = map[string]interface{}
+	Msi           = map[string]interface{}
 	WriteDeadline interface {
 		SetWriteDeadline(t time.Time) error
 	}
