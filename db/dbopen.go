@@ -28,7 +28,7 @@ func (db *Database) Open(configName string) error {
 
 	if len(cnf["tunnel"]) > 0 {
 		// Setup the tunnel, but do not yet start it yet.
-		db.tunnel = sshtunnel.NewSSHTunnel(
+		if db.tunnel, err = sshtunnel.NewSSHTunnel(
 			// User and host of tunnel server, it will default to port 22 if not specified.
 			cnf["tunnel"],
 
@@ -43,7 +43,9 @@ func (db *Database) Open(configName string) error {
 			// The local port you want to bind the remote port to.
 			// Specifying "0" will lead to a random port.
 			"0",
-		)
+		); err != nil {
+			return err
+		}
 
 		// You can provide a logger for debugging, or remove this line to // make it silent.
 		// tunnel.Log = log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds)
